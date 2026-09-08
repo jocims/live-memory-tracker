@@ -19,9 +19,9 @@ A zero-footprint, real-time PHP memory monitoring tool designed for WP Engine se
 
 ## Usage Methods
 
-Choose either **Method A** (saving and running the script file) or **Method B** (running a one-liner command directly in SSH).
+Choose either **Method A** (saving and running the script file) or **Method B** (running a the command directly in SSH).
 
-### Method A: Running as a Script File (Recommended)
+### Method A: Running as a Script File
 
 1. **Upload or Save the File:**  
    Save the script as `live_ram_monitor.py` or `live_ram_monitor.sh` on your server.
