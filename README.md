@@ -1,6 +1,6 @@
-# WP Engine Live RAM Monitor
+#RAM Monitor
 
-A zero-footprint, real-time PHP memory monitoring suite designed for WP Engine server pods. It deploys a temporary Must-Use (MU) plugin (`00-live-ram-tracker.php`) to capture peak RAM consumption per request directly from PHP's Zend Engine, streams metrics from Apache error logs, and displays a live 3-table terminal dashboard.
+A zero-footprint, real-time PHP memory monitoring suite designed for the server pods. It deploys a temporary Must-Use (MU) plugin (`00-live-ram-tracker.php`) to capture peak RAM consumption per request directly from PHP's Zend Engine, streams metrics from Apache error logs, and displays a live 3-table terminal dashboard.
 
 ---
 
