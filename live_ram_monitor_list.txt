@@ -1,14 +1,4 @@
-#!/bin/bash
-
-# Target Python binary on WP Engine
-PYTHON_BIN="/usr/local/bin/redshell/rsh_python/bin/python3"
-
-# Fallback to system python3 if WP Engine custom path doesn't exist
-if [ ! -f "$PYTHON_BIN" ]; then
-    PYTHON_BIN="python3"
-fi
-
-$PYTHON_BIN - << 'EOF'
+cat << 'EOF' > /tmp/live_ram_monitor.py
 import re, time, os, glob, signal, sys
 from collections import defaultdict
 from urllib.parse import urlparse, parse_qs
@@ -35,16 +25,17 @@ add_action('shutdown', function() {
     $mem = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
 
     if ($mem >= 15) {
-        $uri =$_SERVER['REQUEST_URI'] ?? 'CLI';
-        $act =$_REQUEST['action'] ?? null;
+        $uri = $_SERVER['REQUEST_URI'] ?? 'CLI';
+        $act = $_REQUEST['action'] ?? null;
         
-        if ($act && strpos($uri, 'admin-ajax.php') !== false && strpos($uri, 'action=') === false) {$uri .= (strpos($uri, '?') !== false ? '&' : '?') . 'action=' . urlencode($act);
+        if ($act && strpos($uri, 'admin-ajax.php') !== false && strpos($uri, 'action=') === false) {
+            $uri .= (strpos($uri, '?') !== false ? '&' : '?') . 'action=' . urlencode($act);
         }
         
         if ($act) {
-            error_log(sprintf("[RAM-CHECK] %.2f MB | URI: %s | Action: %s", $mem, $uri,$act));
+            error_log(sprintf("[RAM-CHECK] %.2f MB | URI: %s | Action: %s", $mem, $uri, $act));
         } else {
-            error_log(sprintf("[RAM-CHECK] %.2f MB | URI: %s", $mem,$uri));
+            error_log(sprintf("[RAM-CHECK] %.2f MB | URI: %s", $mem, $uri));
         }
     }
 });
@@ -106,11 +97,12 @@ def cleanup():
                 os.remove(target)
             except Exception:
                 pass
-    if os.path.exists("/tmp/ram_monitor_results.log"):
-        try:
-            os.remove("/tmp/ram_monitor_results.log")
-        except Exception:
-            pass
+    for tmp_file in ["/tmp/live_ram_monitor.py", "/tmp/ram_monitor_results.log"]:
+        if os.path.exists(tmp_file):
+            try:
+                os.remove(tmp_file)
+            except Exception:
+                pass
     print("✅ Cleanup complete.")
 
 active_targets = deploy_plugins()
@@ -206,6 +198,7 @@ def render_table():
     except Exception:
         pass
 
+# Tail error logs for valid targets
 file_pointers = {}
 for install in active_targets:
     filepath = f"/var/log/apache2/{install}.error.log"
@@ -239,6 +232,7 @@ try:
                     install_data[install_name]["total_mem"] += mem
                     install_data[install_name]["peak_mem"] = max(install_data[install_name]["peak_mem"], mem)
                     if mem > install_data[install_name]["heaviest_mem"]:
+                        install_data[install_name]["heaviest_mem"] = mem
                         install_data[install_name]["heaviest_uri"] = norm_route
 
                     smart_key = (install_name, norm_route)
@@ -263,3 +257,4 @@ finally:
     cleanup()
     sys.exit(0)
 EOF
+/usr/local/bin/redshell/rsh_python/bin/python3 /tmp/live_ram_monitor.py
